@@ -8,7 +8,7 @@ numbers_dict = {
     "пятнадцать": 15, "шестнадцать": 16, "семнадцать": 17, "восемнадцать": 18,
     "девятнадцать": 19, "двадцать": 20, "тридцать": 30, "сорок": 40,
     "пятьдесят": 50, "шестьдесят": 60, "семьдесят": 70, "восемьдесят": 80,
-    "девяносто": 90, "сто": 100,
+    "девяносто": 90, "сто": 100, 
 }
 
 # Словарь для порядковых числительных (для дробей)
@@ -67,13 +67,19 @@ def parse_number(words):
         whole = words_to_number(words[:i])
         numerator, denominator = parse_fraction(words[i+1:])
         frac = Fraction(whole,1) + Fraction(numerator, denominator)
-    elif len(words) >= 2:  # правильная дробь
-        numerator, denominator = parse_fraction(words)
-        frac = Fraction(numerator, denominator)
+    elif len(words) >= 2:
+        # проверяем, что второе слово реально дробное
+        denom_word = clean_fraction_word(words[1])
+        if denom_word in fraction_words:
+            numerator, denominator = parse_fraction(words)
+            frac = Fraction(numerator, denominator)
+        else:
+            frac = Fraction(words_to_number(words), 1)
     else:
         frac = Fraction(words_to_number(words),1)
     
     return -frac if negative else frac
+
 
 # --- Имя дроби с правильным окончанием ---
 def fraction_name(denom, remainder=False):
@@ -158,18 +164,26 @@ def number_to_word(n):
         return "минус " + number_to_word(-n)
     if n == 0:
         return "ноль"
+
     parts = []
+
     if n >= 100:
         hundreds = (n // 100) * 100
-        parts.append(numbers_dict_rev[hundreds])
+        if hundreds in numbers_dict_rev:
+            parts.append(numbers_dict_rev[hundreds])
         n %= 100
+
     if n >= 20:
         tens = (n // 10) * 10
-        parts.append(numbers_dict_rev[tens])
+        if tens in numbers_dict_rev:
+            parts.append(numbers_dict_rev[tens])
         n %= 10
+
     if 0 < n < 20:
         parts.append(numbers_dict_rev[n])
+
     return " ".join(parts)
+
 
 # --- Вычисление выражения ---
 def calc_expression(words):
